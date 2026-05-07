@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SkillPoint - IGCSE & AS Level (A1) Hub</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                bg: '#0a0a0a',
+                accent: '#00ff88',
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              serif: ['Playfair Display', 'serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            }
+          }
+        }
+      }
+    </script>
+
+    <!-- Global Styles -->
+    <link rel="stylesheet" href="./src/index.css">
+
+    <!-- Libraries -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@latest/dist/lenis.min.js"></script>
+  </head>
+  <body class="bg-brand-bg text-white selection:bg-brand-accent selection:text-black min-h-screen overflow-x-hidden">
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-500 py-6 px-6">
+      <div class="max-w-7xl mx-auto flex items-center justify-between">
+        <a href="#/subjects" class="flex items-center gap-2 group">
+          <div class="w-10 h-10 bg-brand-accent rounded-xl flex items-center justify-center rotate-3 group-hover:rotate-12 transition-transform duration-500 shadow-[0_0_20px_rgba(0,255,136,0.3)]">
+            <i data-lucide="graduation-cap" class="text-black w-6 h-6"></i>
+          </div>
+          <span class="text-2xl font-bold tracking-tighter">Skill<span class="text-brand-accent">Point</span></span>
+        </a>
+
+        <div class="flex items-center gap-1 glass p-1 rounded-full">
+          <a href="#/subjects" data-nav-link="/subjects" class="flex items-center gap-2 px-6 py-2 rounded-full text-sm font-medium transition-all hover:text-brand-accent">
+            <i data-lucide="book-open" class="w-4 h-4"></i> Subjects
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- App Content Wrapper -->
+    <div id="app"></div>
+
+    <!-- Preview Modal -->
+    <div id="preview-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-0 md:p-6 lg:p-12 pointer-events-none">
+      <div class="absolute inset-0 bg-black/95 backdrop-blur-md pointer-events-auto" onclick="closePreview()"></div>
+      <div class="relative w-full h-full glass rounded-[1.5rem] border border-white/10 overflow-hidden flex flex-col pointer-events-auto shadow-[0_0_100px_rgba(0,0,0,0.5)]">
+        
+        <!-- Pro Viewer Toolbar -->
+        <div class="h-14 bg-[#141414] flex items-center justify-between px-4 border-b border-white/5 z-20">
+          <!-- Left: Nav -->
+          <div class="flex items-center gap-4">
+            <button class="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/60"><i data-lucide="menu" class="w-5 h-5"></i></button>
+            <div class="flex items-center gap-2 bg-[#252525] px-2 py-1 rounded-md border border-white/5">
+              <button id="p-prev" class="p-1 hover:text-brand-accent transition-colors text-white/40"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+              <div class="flex items-center gap-2 px-1">
+                <span id="p-current" class="text-xs font-mono font-bold">1</span>
+                <span class="text-[10px] text-white/20 uppercase tracking-tighter">of</span>
+                <span id="p-total" class="text-xs font-mono text-white/40">16</span>
+              </div>
+              <button id="p-next" class="p-1 hover:text-brand-accent transition-colors text-white/40"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+            </div>
+          </div>
+
+          <!-- Center: Zoom & History -->
+          <div class="hidden md:flex items-center gap-6">
+            <div class="flex items-center gap-2">
+              <button id="btn-undo" class="p-1.5 hover:bg-white/10 rounded-md transition-all text-white/20 disabled:opacity-30 disabled:cursor-not-allowed" title="Undo"><i data-lucide="undo" class="w-4 h-4"></i></button>
+              <button id="btn-redo" class="p-1.5 hover:bg-white/10 rounded-md transition-all text-white/20 disabled:opacity-30 disabled:cursor-not-allowed" title="Redo"><i data-lucide="redo" class="w-4 h-4"></i></button>
+            </div>
+            
+            <div class="w-[1px] h-4 bg-white/10"></div>
+
+            <div class="flex items-center gap-3">
+              <button id="z-minus" class="p-1.5 hover:bg-white/10 rounded-md transition-all text-white/40"><i data-lucide="minus" class="w-4 h-4"></i></button>
+              <div id="zoom-val" class="bg-[#252525] px-3 py-1 rounded-md text-[11px] font-mono border border-white/5 text-white/60 min-w-[60px] text-center">100%</div>
+              <button id="z-plus" class="p-1.5 hover:bg-white/10 rounded-md transition-all text-white/40"><i data-lucide="plus" class="w-4 h-4"></i></button>
+            </div>
+          </div>
+
+          <!-- Right: Action Tools -->
+          <div class="flex items-center gap-1 sm:gap-2">
+            <div class="hidden sm:flex items-center gap-1 mr-2 px-1 border-r border-white/10">
+              <button id="tool-pointer" class="p-2 text-brand-accent bg-brand-accent/10 rounded-lg tool-btn active" data-tool="pointer" title="Select"><i data-lucide="mouse-pointer-2" class="w-4 h-4"></i></button>
+              <button id="tool-text" class="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/40 tool-btn" data-tool="text" title="Text Resource"><i data-lucide="type" class="w-4 h-4"></i></button>
+              <button id="tool-pen" class="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/40 tool-btn" data-tool="pen" title="Pen Tool"><i data-lucide="pen-tool" class="w-4 h-4"></i></button>
+              <button id="tool-eraser" class="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/40 tool-btn" data-tool="eraser" title="Eraser Tool"><i data-lucide="eraser" class="w-4 h-4"></i></button>
+            </div>
+            
+            <a id="preview-external" href="#" target="_blank" class="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/60" title="Open in New Tab">
+              <i data-lucide="external-link" class="w-5 h-5"></i>
+            </a>
+            <button id="btn-download" class="p-2 hover:bg-brand-accent hover:text-black rounded-lg transition-all text-white/60" title="Download">
+              <i data-lucide="download" class="w-5 h-5"></i>
+            </button>
+            <div class="w-[1px] h-6 bg-white/10 mx-1"></div>
+            <button onclick="closePreview()" class="p-2 hover:bg-red-500/20 hover:text-red-400 rounded-lg transition-all text-white/60">
+              <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Viewer Breadcrumb / Info -->
+        <div class="bg-[#0f0f0f] px-6 py-2 flex items-center justify-between border-b border-white/5">
+          <div class="flex items-center gap-3 overflow-hidden">
+            <i data-lucide="file-text" class="w-4 h-4 text-brand-accent flex-shrink-0"></i>
+            <h3 id="preview-title" class="text-xs font-medium text-white/60 truncate tracking-tight uppercase font-mono">SkillPoint Academic Archive</h3>
+          </div>
+          
+          <!-- Tool Options Panel (Contextual) -->
+          <div id="tool-options" class="hidden items-center gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+            <!-- Pen/Text Options -->
+            <div id="opt-color" class="flex items-center gap-2 px-3 border-r border-white/10">
+              <span class="text-[10px] text-white/30 uppercase font-mono">Color</span>
+              <div class="flex items-center gap-1.5">
+                <button class="w-4 h-4 rounded-full bg-[#00ff88] border border-white/20 color-dot active" data-color="#00ff88"></button>
+                <button class="w-4 h-4 rounded-full bg-[#ff4b4b] border border-white/20 color-dot" data-color="#ff4b4b"></button>
+                <button class="w-4 h-4 rounded-full bg-[#4b9eff] border border-white/20 color-dot" data-color="#4b9eff"></button>
+                <button class="w-4 h-4 rounded-full bg-[#ffffff] border border-white/20 color-dot" data-color="#ffffff"></button>
+              </div>
+            </div>
+
+            <!-- Size Slider (Pen/Eraser) -->
+            <div id="opt-size" class="flex items-center gap-3 px-3 border-r border-white/10">
+              <span class="text-[10px] text-white/30 uppercase font-mono">Size</span>
+              <input type="range" id="size-slider" min="1" max="50" value="3" class="w-24 accent-brand-accent opacity-50 hover:opacity-100 transition-opacity">
+            </div>
+
+            <!-- Opacity Slider (Pen) -->
+            <div id="opt-opacity" class="flex items-center gap-3 px-3 border-r border-white/10">
+              <span class="text-[10px] text-white/30 uppercase font-mono">Flow</span>
+              <input type="range" id="opacity-slider" min="0.1" max="1" step="0.1" value="1" class="w-20 accent-brand-accent opacity-50 hover:opacity-100 transition-opacity">
+            </div>
+
+            <!-- Font Selector (Text) -->
+            <div id="opt-font" class="flex items-center gap-2 px-3">
+              <span class="text-[10px] text-white/30 uppercase font-mono">Font</span>
+              <select id="font-select" class="bg-black/40 border border-white/10 text-[10px] text-white/60 rounded px-2 py-0.5 outline-none focus:border-brand-accent transition-colors">
+                <option value="JetBrains Mono">Mono</option>
+                <option value="Inter">Sans</option>
+                <option value="serif">Serif</option>
+              </select>
+            </div>
+          </div>
+          
+          <span class="text-[10px] text-white/20 font-mono hidden sm:block">SECURE VIEWING SESSION ACTIVE</span>
+        </div>
+
+        <!-- Main Document Stage -->
+        <div class="flex-1 w-full relative bg-[#1a1a1a] flex items-center justify-center overflow-hidden p-4">
+          <div id="viewer-stage" class="w-full h-full max-w-5xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] bg-white/5 rounded-sm relative overflow-hidden origin-top transition-transform duration-300">
+            <!-- Clipping wrapper to hide browser UI -->
+            <div class="absolute inset-x-0 top-0 bottom-0 overflow-hidden">
+              <iframe id="preview-iframe" src="" class="w-full h-[calc(100%+80px)] -mt-[40px] border-none"></iframe>
+            </div>
+            
+            <!-- Canvas Overlay for Drawing -->
+            <canvas id="viewer-canvas" class="absolute inset-0 z-10 pointer-events-none opacity-0 transition-opacity duration-300"></canvas>
+
+            <!-- Custom Sidebar Overlay (Visual Purely) -->
+            <div class="absolute left-0 top-0 bottom-0 w-12 bg-black/40 border-r border-white/5 hidden lg:flex flex-col items-center py-6 gap-6 z-20">
+              <i data-lucide="layers" class="w-5 h-5 text-white/20 hover:text-brand-accent cursor-pointer"></i>
+              <i data-lucide="search" class="w-5 h-5 text-white/20 hover:text-brand-accent cursor-pointer"></i>
+              <i data-lucide="bookmark" class="w-5 h-5 text-white/20 hover:text-brand-accent cursor-pointer"></i>
+            </div>
+          </div>
+          
+          <div id="preview-loader" class="absolute inset-0 flex items-center justify-center bg-[#1a1a1a] z-30 transition-opacity duration-500">
+            <div class="flex flex-col items-center gap-6">
+              <div class="relative w-16 h-16">
+                <div class="absolute inset-0 border-4 border-brand-accent/10 rounded-full"></div>
+                <div class="absolute inset-0 border-4 border-t-brand-accent rounded-full animate-spin"></div>
+              </div>
+              <div class="text-center">
+                <p class="text-xs font-mono uppercase tracking-[0.3em] text-brand-accent animate-pulse">Initializing Secure Reader</p>
+                <p class="text-[10px] text-white/20 mt-2 font-mono">ENCRYPTING CONNECTION STREAM</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer id="main-footer" class="py-20 px-6 border-t border-white/5 text-center">
+      <div class="text-4xl font-bold tracking-tighter mb-4">
+        <span class="text-white">Skill</span>
+        <span class="text-brand-accent">Point</span>
+      </div>
+      <p class="text-white/40 text-sm">A private repository for academic mastery. Not for public distribution ;)</p>
+    </footer>
+
+    <!-- Main JS -->
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
